@@ -57,8 +57,9 @@ input,textarea,select{font-family:inherit}
 .cc.has{background:#1E1E3A}.cc.tod{border:2px solid var(--blue)}
 .cc .d{font-size:13px;color:#ccc}
 .cc.tod .d{color:var(--blue);font-weight:700}
-.cc .dots{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center}
+.cc .dots{display:flex;gap:1px;margin-top:1px;flex-wrap:wrap;justify-content:center}
 .cc .dot{width:5px;height:5px;border-radius:50%}
+.cc .dc{font-size:7px;font-weight:700;letter-spacing:-.5px;line-height:1}
 .cc .cnt{position:absolute;top:1px;right:3px;font-size:8px;color:#888}
 .cs{margin:18px 16px;padding:14px;background:var(--card);border-radius:16px;display:flex;justify-content:space-around}
 .cs .sn{font-size:20px}
@@ -158,19 +159,21 @@ input.ni2:focus{outline:none;border-color:var(--blue)}
 
 <div id="tBk" style="display:none">
   <div class="bk-area" style="margin-top:8px">
-    <div class="bk-title">バックアップ</div>
+    <div class="bk-title">💾 ワンタップバックアップ</div>
     <div class="bk-row">
-      <button class="bk-btn" onclick="dlCSV()"><span class="bki">📊</span><span class="bkl">CSVダウンロード</span></button>
-      <button class="bk-btn" onclick="cpJSON()"><span class="bki">📋</span><span class="bkl">JSONコピー</span></button>
+      <button class="bk-btn" onclick="dlJSON()" style="background:#1A2A2A;border:1px solid var(--teal)"><span class="bki">⬇️</span><span class="bkl" style="color:var(--teal)">JSONを保存</span></button>
     </div>
+    <p id="lastBk" style="color:#555;font-size:10px;margin-top:8px;text-align:center"></p>
     <div style="margin-top:16px">
-      <div class="bk-title">復元</div>
+      <div class="bk-title">その他</div>
       <div class="bk-row">
-        <button class="bk-btn" onclick="$('jFile').click()"><span class="bki">📥</span><span class="bkl">JSONから復元</span></button>
+        <button class="bk-btn" onclick="dlCSV()"><span class="bki">📊</span><span class="bkl">CSV</span></button>
+        <button class="bk-btn" onclick="cpJSON()"><span class="bki">📋</span><span class="bkl">JSONコピー</span></button>
+        <button class="bk-btn" onclick="$('jFile').click()"><span class="bki">📥</span><span class="bkl">復元</span></button>
       </div>
       <input type="file" id="jFile" accept=".json,application/json" style="display:none" onchange="restJSON(this)">
     </div>
-    <p style="color:#555;font-size:10px;margin-top:14px;line-height:1.5">💡 CSVはスプレッドシートで開けます。JSONは全データのバックアップ＆復元用です。定期的に保存しておくと安心です。</p>
+    <p style="color:#555;font-size:10px;margin-top:14px;line-height:1.5">💡 JSONを保存 → iCloud Driveに自動保存されます。CSVはスプレッドシート用。毎日リマインドが出ます。</p>
   </div>
 </div>
 
@@ -202,7 +205,7 @@ input.ni2:focus{outline:none;border-color:var(--blue)}
 <div class="md" onclick="event.stopPropagation()">
   <p class="mt2" id="mNT">腕のしびれを記録</p>
   <div style="text-align:center;margin:10px 0"><svg width="44" height="44" viewBox="0 0 40 40" fill="none"><path d="M20 4c-2 0-4 1-5 3l-7 14c-1 2 .5 4 2.5 4h3v8c0 2 1.5 3 3 3h7c1.5 0 3-1 3-3v-8h3c2 0 3.5-2 2.5-4L25 7c-1-2-3-3-5-3z" fill="#A78BFA" opacity=".9"/><path d="M16 18h8M16 22h6" stroke="#1A1A2E" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-  <div class="f"><div class="fl">部位</div><div class="cg2" id="nSd"></div></div>
+  <div class="f"><div class="fl">部位（複数OK）</div><div class="cg2" id="nSd"></div></div>
   <div class="f"><div class="fl">強さ</div><div class="cg2" id="nSt"></div></div>
   <div class="f"><div class="fl">メモ</div><textarea class="me" id="nMe" placeholder="気づいたことなど…" rows="2"></textarea></div>
   <div class="f"><div class="fl">日時</div><div class="dr"><input type="datetime-local" class="di" id="nDT"><button class="bnw" onclick="sN('nDT')">現在</button></div></div>
@@ -246,7 +249,7 @@ function sN(id){$(id).value=fDT(new Date())}
 function showT(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 
 const TRIG=['運動中','安静時','食後','ストレス','起床時','寒さ','階段','入浴後'];
-const SIDES=['左腕','右腕','両腕','左手','右手'];
+const SIDES=['両腕','両手','右腕','左腕','右手','左手'];
 const STRS=['弱い','中くらい','強い'];
 const NIC=['1回','2回','3回','それ以上'];
 const NIE=['すぐ効いた','少し時間かかった','効かなかった'];
@@ -277,7 +280,12 @@ function sTab(t){
   $('n1').classList.toggle('on',t==='home');
   $('n2').classList.toggle('on',t==='cal');
   $('n3').classList.toggle('on',t==='bk');
-  if(t==='cal')rCal();if(t==='home')rHome();
+  if(t==='cal')rCal();if(t==='home')rHome();if(t==='bk')uBkInfo();
+}
+function uBkInfo(){
+  const last=localStorage.getItem('health-lastbk');
+  if(last){const d=new Date(parseInt(last));$('lastBk').textContent='最終バックアップ: '+d.toLocaleDateString('ja-JP',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+  else $('lastBk').textContent='まだバックアップしていません';
 }
 
 // Modal open
@@ -295,7 +303,7 @@ function openM(t,rec){
   }
   if(t==='numb'){
     $('mNT').textContent=rec?'しびれを編集':'腕のしびれを記録';
-    mkCh('nSd',SIDES,false,rec?rec.side:[]);
+    mkCh('nSd',SIDES,true,rec?rec.side:[]);
     mkCh('nSt',STRS,false,rec?rec.strength:[]);
     $('nMe').value=rec&&rec.memo?rec.memo:'';
     $('nDT').value=rec?fDT(new Date(rec.time)):fDT(new Date());
@@ -376,13 +384,16 @@ function rCal(){
   let h='';for(let i=0;i<s;i++)h+='<div></div>';
   for(let d=1;d<=days;d++){
     const ds=`${cY}-${String(cMo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dr=R.filter(r=>r.date===ds),ts=new Set(dr.map(r=>r.type));
+    const dr=R.filter(r=>r.date===ds);
+    const hc=dr.filter(r=>r.type==='heart').length;
+    const nc=dr.filter(r=>r.type==='numb').length;
+    const nic=dr.filter(r=>r.type==='nitro').length;
     const cls=['cc'];if(dr.length)cls.push('has');if(ds===t)cls.push('tod');
     let dots='';
-    if(ts.has('heart'))dots+=`<div class="dot" style="background:var(--red)"></div>`;
-    if(ts.has('numb'))dots+=`<div class="dot" style="background:var(--purple)"></div>`;
-    if(ts.has('nitro'))dots+=`<div class="dot" style="background:var(--teal)"></div>`;
-    h+=`<button class="${cls.join(' ')}" onclick="openDD('${ds}')"><span class="d">${d}</span><div class="dots">${dots}</div>${dr.length?'<span class="cnt">'+dr.length+'</span>':''}</button>`;
+    if(hc)dots+=`<span class="dc" style="color:var(--red)">●${hc}</span>`;
+    if(nc)dots+=`<span class="dc" style="color:var(--purple)">●${nc}</span>`;
+    if(nic)dots+=`<span class="dc" style="color:var(--teal)">●${nic}</span>`;
+    h+=`<button class="${cls.join(' ')}" onclick="openDD('${ds}')"><span class="d">${d}</span><div class="dots">${dots}</div></button>`;
   }
   $('cG').innerHTML=h;
   const mk=`${cY}-${String(cMo+1).padStart(2,'0')}`,mr=R.filter(r=>r.date.startsWith(mk));
@@ -458,9 +469,36 @@ function restJSON(input){
   reader.readAsText(f);
 }
 
+// Backup: auto JSON download
+function dlJSON(){
+  if(!R.length){showT('データがありません');return}
+  const j=JSON.stringify(R);
+  const blob=new Blob([j],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`health-backup-${todS()}.json`;a.click();
+  localStorage.setItem('health-lastbk',Date.now().toString());
+  showT('バックアップ保存しました ✅');
+}
+
+// Backup reminder (daily)
+function chkBk(){
+  if(!R.length)return;
+  const last=localStorage.getItem('health-lastbk');
+  const now=Date.now();
+  const oneDay=24*60*60*1000;
+  if(!last||now-parseInt(last)>oneDay){
+    setTimeout(()=>{
+      if(confirm('前回のバックアップから1日以上経っています。\n今すぐバックアップしますか？\n\n（iCloud Driveに自動保存されます）')){
+        dlJSON();
+      }
+    },800);
+  }
+}
+
 // Init
 $('hDate').textContent=new Date().toLocaleDateString('ja-JP',{month:'long',day:'numeric',weekday:'short'});
 rHome();
+chkBk();
 </script>
 </body>
 </html>
